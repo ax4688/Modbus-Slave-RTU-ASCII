@@ -1,6 +1,6 @@
 /*	Create: Burak DERELİ
 	Contact: www.burakdereli.net
-	Version: v0.10
+	Version: v0.20
 */
 
 #include "Bmodbus-slave.h"
@@ -137,6 +137,26 @@ void Bmodbus::RTU_function3 (){
 
 }
 
+void Bmodbus::RTU_function6 (){
+
+	int data_adr = readData[2] << 8;
+	data_adr += readData[3];
+	data_adr -= address;
+
+	int data_val = readData[4] << 8;
+	data_val += readData[5];
+
+	if(data_adr >= 0 && data_adr < sizeof(reg) ){ //Modbus Addres Limit Control
+		reg[data_adr] = data_val;
+		digitalWrite(tp, HIGH);
+		delay(1);
+		Serial.write(readData,readL);
+		Serial.flush();
+	}
+
+
+}
+
 void Bmodbus::ASCII_function3 (){
 	
 	int data_adr = ( hex_convert(readAscii.substring(5,7)) << 8 )+ hex_convert(readAscii.substring(7,9));
@@ -154,6 +174,22 @@ void Bmodbus::ASCII_function3 (){
 		delay(1);
 		ascii_send = ":"+ascii_send+lrc_byte;
 		Serial.println(ascii_send);
+		Serial.flush();
+	}
+}
+
+void Bmodbus::ASCII_function6 (){
+	
+	int data_adr = ( hex_convert(readAscii.substring(5,7)) << 8 )+ hex_convert(readAscii.substring(7,9));
+	data_adr -= address;
+
+	int data_val = ( hex_convert(readAscii.substring(9,11)) << 8 )+ hex_convert(readAscii.substring(11,13));
+
+	if(data_adr >= 0 && data_adr < sizeof(reg) ){ //Modbus Addres Limit Control
+		reg[data_adr] = data_val;
+		digitalWrite(tp, HIGH);
+		delay(1);
+		Serial.println(readAscii);
 		Serial.flush();
 	}
 }
@@ -179,7 +215,10 @@ if (bmod == "RTU"){ //RTU Mod
 				switch (readData[1]) {
 					case 0x3:
 						RTU_function3();
-						break;
+					break;
+					case 0x6:
+						RTU_function6();
+					break;
 
 				}
 		
@@ -209,9 +248,12 @@ if (bmod == "RTU"){ //RTU Mod
 				if( readAscii.substring(readAscii.length()-4, readAscii.length()-2) == lrc_byte ) //LRC Control
 				{
 					switch ( hex_convert( readAscii.substring(3,5) ) ) {
-					case 3:
+					case 0x3:
 						ASCII_function3();
-						break;
+					break;
+					case 0x6:
+						ASCII_function6();
+					break;
 
 					}
 			
