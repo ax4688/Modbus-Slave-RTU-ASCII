@@ -1,6 +1,6 @@
 /*	Create: Burak DERELİ
 	Contact: www.burakdereli.net
-	Version: v0.20
+	Version: v0.30
 */
 
 #include "Bmodbus-slave.h"
@@ -8,7 +8,7 @@
 byte modbus_id; //Slave Modbus ID
 byte tp; //TX Enable Pin
 String bmod = "";  
-byte readData[30];
+byte readData[50];
 byte sendData[100];
 String readAscii;
 String asciiData[50];
@@ -115,7 +115,7 @@ void Bmodbus::RTU_function3 (){
 		sendData[2] = data_len*2;
 
 		int len = 3;
-		for (int i = 0; i <= data_len; i++) {
+		for (int i = 0; i < data_len; i++) {
 			sendData[len] = highByte( reg[data_adr + i] );
 			sendData[len+1] = lowByte( reg[data_adr + i] );
 			len += 2;
@@ -157,6 +157,45 @@ void Bmodbus::RTU_function6 (){
 
 }
 
+void Bmodbus::RTU_function16 (){
+
+	int data_adr = readData[2] << 8;
+	data_adr += readData[3];
+	data_adr -= address;
+
+	int data_len = readData[4] << 8;
+	data_len += readData[5];
+
+	int data_byte = readData[6];
+
+	if(data_adr >= 0 && data_adr < sizeof(reg) ){ //Modbus Addres Limit Control
+		
+		int len = 7;
+		for (int i = 0; i < data_len; i++) {
+			reg[data_adr + i] = 0;
+			reg[data_adr + i] = readData[len] << 8;
+			reg[data_adr + i] += readData[len+1];
+			len += 2;
+		}
+		
+		sendData[0] = modbus_id;
+		sendData[1] = 0x10;
+		sendData[2] = readData[2];
+		sendData[3] = readData[3];
+		sendData[4] = readData[4];
+		sendData[5] = readData[5];
+
+		digitalWrite(tp, HIGH);
+		RTU_CRC(sendData,6);
+		delay(1);
+		Serial.write(sendData,6);
+		Serial.write(crc16_l);
+		Serial.write(crc16_h);
+		Serial.flush();
+	}
+}
+
+
 void Bmodbus::ASCII_function3 (){
 	
 	int data_adr = ( hex_convert(readAscii.substring(5,7)) << 8 )+ hex_convert(readAscii.substring(7,9));
@@ -194,6 +233,32 @@ void Bmodbus::ASCII_function6 (){
 	}
 }
 
+void Bmodbus::ASCII_function16 (){
+	
+	int data_adr = ( hex_convert(readAscii.substring(5,7)) << 8 )+ hex_convert(readAscii.substring(7,9));
+	data_adr -= address;
+
+	int data_len = ( hex_convert(readAscii.substring(9,11)) << 8 )+ hex_convert(readAscii.substring(11,13));
+
+	int data_byte = hex_convert(readAscii.substring(13,15));
+
+	if(data_adr >= 0 && data_adr < sizeof(reg) ){ //Modbus Addres Limit Control
+		int len = 15;
+		for (int i = 0; i < data_len; i++) {
+			reg[data_adr + i] = 0;
+			reg[data_adr + i] = ( hex_convert(readAscii.substring(len,len+2)) << 8 )+ hex_convert(readAscii.substring(len+2,len+4));
+			len += 4;
+		}
+		String ascii_send = readAscii.substring(1,13);
+		digitalWrite(tp, HIGH);
+		ASCII_LRC( ascii_send ); //LRC
+		delay(1);
+		ascii_send = ":"+ascii_send+lrc_byte;
+		Serial.println(ascii_send);
+		Serial.flush();
+	}
+}
+
 
 
 
@@ -204,7 +269,7 @@ if (bmod == "RTU"){ //RTU Mod
 
 	if (Serial.available() > 0){
 		readL = 0;
-		delay (10);
+		delay (40);
 		while(Serial.available() > 0){readData[readL] = Serial.read(); readL++;} 
 		delay (1);
 		if(modbus_id == readData[0]) // Modbus ID Control
@@ -218,6 +283,9 @@ if (bmod == "RTU"){ //RTU Mod
 					break;
 					case 0x6:
 						RTU_function6();
+					break;
+					case 0x10:
+						RTU_function16();
 					break;
 
 				}
@@ -238,7 +306,7 @@ if (bmod == "RTU"){ //RTU Mod
 
 		if (Serial.available() > 0){
 			readAscii = "";
-			delay (20);
+			delay (40);
 			while(Serial.available() > 0){readAscii += (char)Serial.read();} 
 			delay (1);
 
@@ -253,6 +321,9 @@ if (bmod == "RTU"){ //RTU Mod
 					break;
 					case 0x6:
 						ASCII_function6();
+					break;
+					case 0x10:
+						ASCII_function16();
 					break;
 
 					}

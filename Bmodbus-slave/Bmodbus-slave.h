@@ -1,6 +1,6 @@
 /*	Create: Burak DERELİ
 	Contact: www.burakdereli.net
-	Version: v0.20
+	Version: v0.30
 */
 
 #ifndef Bmodbus_slave_H
