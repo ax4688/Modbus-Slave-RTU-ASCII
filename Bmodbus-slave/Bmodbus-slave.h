@@ -1,6 +1,6 @@
 /*	Create: Burak DERELİ
 	Contact: www.burakdereli.net
-	Version: v0.30
+	Version: v0.40
 */
 
 #ifndef Bmodbus_slave_H
@@ -11,7 +11,7 @@
 class Bmodbus {
 	
 	public:
-	void mode (String mod , int m_id , int baud, byte t_pin, int adr); // ( Mod:ASCII/RTU , Modbus ID, Baudrate, TX Enable Pin, Start Adress )
+	void mode (String mod , int m_id , int baud, int prt, byte t_pin, int adr); // ( Mod:ASCII/RTU , Modbus ID, Baudrate, TX Enable Pin, Start Adress )
 	int reg[100];
 	bool input[20];
 	bool output[20];

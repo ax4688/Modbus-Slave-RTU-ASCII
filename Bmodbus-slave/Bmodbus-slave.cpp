@@ -1,6 +1,6 @@
 /*	Create: Burak DERELİ
 	Contact: www.burakdereli.net
-	Version: v0.30
+	Version: v0.40
 */
 
 #include "Bmodbus-slave.h"
@@ -15,7 +15,7 @@ String asciiData[50];
 int readL=0;
 int address;
 
-void Bmodbus::mode (String mod , int m_id , int baud, byte t_pin, int adr){
+void Bmodbus::mode (String mod , int m_id , int baud, int prt, byte t_pin, int adr){
 	
 	// Modbus Select Mod
 	if (mod == "RTU" || mod == "ASCII"){
@@ -26,10 +26,63 @@ void Bmodbus::mode (String mod , int m_id , int baud, byte t_pin, int adr){
 	modbus_id = m_id;
 
 	//Select Baudrate
+	long br = 9600;
 	switch (baud) {
 		case 0:
-			Serial.begin(9600,SERIAL_8N1);
-			break;
+			br = 9600;
+		break;
+		case 1:
+			br = 38400;
+		break;
+		case 2:
+			br = 19200;
+		break;
+		case 3:
+			br = 57600;
+		break;
+		case 4:
+			br = 115200;
+		break;
+	}
+
+	switch (prt) {
+		case 0:
+			Serial.begin(br,SERIAL_8N1);
+		break;
+		case 1:
+			Serial.begin(br,SERIAL_7N1);
+		break;
+		case 2:
+			Serial.begin(br,SERIAL_8N2);
+		break;
+		case 3:
+			Serial.begin(br,SERIAL_7N2);
+		break;
+		case 4:
+			Serial.begin(br,SERIAL_8E1);
+		break;
+		case 5:
+			Serial.begin(br,SERIAL_7E1);
+		break;
+		case 6:
+			Serial.begin(br,SERIAL_8E2);
+		break;
+		case 7:
+			Serial.begin(br,SERIAL_7E2);
+		break;
+		case 8:
+			Serial.begin(br,SERIAL_8O1);
+		break;
+		case 9:
+			Serial.begin(br,SERIAL_7O1);
+		break;
+		case 10:
+			Serial.begin(br,SERIAL_8O2);
+		break;
+		case 11:
+			Serial.begin(br,SERIAL_7O2);
+		break;
+		
 		default:
 			Serial.begin(9600,SERIAL_8N1);
 			break;

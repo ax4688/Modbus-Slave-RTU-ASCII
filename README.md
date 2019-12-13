@@ -10,6 +10,8 @@ v0.20 - 12/12/2019 - Modbus Function 6 working
 
 v0.30 - 13/12/2019 - Modbus Function 16 working
 
+v0.40 - 13/12/2019 - Add more baudrate
+
 
 
 

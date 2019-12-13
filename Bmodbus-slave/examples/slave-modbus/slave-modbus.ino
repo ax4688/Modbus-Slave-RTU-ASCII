@@ -9,7 +9,7 @@ Bmodbus slave;
 
 void setup() {
 
- slave.mode("ASCII", 4,0,3,4096); // ( Mod:ASCII/RTU , Modbus ID, Baudrate, TX Enable Pin, Start Address )
+ slave.mode("RTU", 4,0,0,3,4096); // ( Mod:ASCII/RTU , Modbus ID, Baudrate, Parity, TX Enable Pin, Start Address )
 
 }
 
